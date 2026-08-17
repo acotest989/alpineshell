@@ -104,11 +104,42 @@ Header and footer are **not** listed in `partials`: the router adds them to each
 Every page is nested in the root component, so these are one scope away:
 
 - `goTo(path)`, `goBack()` — navigation from code. Links stay plain `<a href>`; the router intercepts clicks itself, which keeps Ctrl+click and keyboard behaviour intact.
-- `errMsg` — set it and your toast partial shows. Cleared on every navigation.
+- `notify(text, type)`, `dismiss()`, `message` — see below.
 - `partials.<name>` — the markup you listed, ready for `x-html`.
 - whatever you passed as `app`.
 
 Also exported: `http` (fetch wrapper — auto JSON, throws `HttpError` carrying the server's body, timeouts, query params), `errorMessage(err, fallback)`, `setPageTitle(name)`, `consumeRedirect()`.
+
+## Saying something
+
+```js
+this.notify('Saved.', 'success');
+this.notify('Could not reach the server.', 'error');
+this.notify('A new link is on its way.');       // 'info' by default
+```
+
+State is one object, `message` — `{ text, type }` — and your toast partial decides how each type looks:
+
+```html
+<div x-show="message.text" :class="message.type === 'error' ? 'bg-red-200' : 'bg-gray-900 text-white'">
+  <p x-text="message.text"></p>
+  <button type="button" @click="dismiss()">Close</button>
+</div>
+```
+
+An **error stays** until the visitor dismisses it or navigates; every other type clears itself after a few seconds. That asymmetry is the point: a failure is something to act on, an acknowledgement is something to notice.
+
+`errMsg` still works — assigning to it is `notify(text, 'error')`, and reading it returns errors only, so a toast written before `message` existed can never paint a success as a failure.
+
+## Focus, on markup that was injected
+
+`autofocus` does nothing here: the browser honours it while parsing a document, and these pages arrive afterwards. `$refs` will not help either if the field lives inside `x-if`, because the component's `init()` runs before that block exists.
+
+The element focuses itself instead:
+
+```html
+<input x-init="$el.focus()" class="input">
+```
 
 ## What it does that the router does not
 
