@@ -129,7 +129,16 @@ It has to be a store, not component data — the guard runs outside Alpine and n
 
 ## Dependencies
 
-Alpine.js, [Pinecone Router](https://github.com/rehhouari/pinecone-router), `@alpinejs/persist`, Tailwind CSS — all from jsDelivr, all pinned in `index.js`.
+All from jsDelivr, all pinned to an exact version in `index.js` — a range would change your app without you touching it:
+
+| | |
+|---|---|
+| [Alpine.js](https://alpinejs.dev) | 3.16.1 |
+| `@alpinejs/persist` | 3.16.1 — must match Alpine |
+| [Pinecone Router](https://github.com/rehhouari/pinecone-router) | 7.6.0 |
+| [Tailwind CSS](https://tailwindcss.com) (browser build) | 4.3.3 |
+
+Upgrading one of them is a release of this framework, not a decision an app makes.
 
 ## License
 
