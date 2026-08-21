@@ -11,8 +11,12 @@
     "index.js",
     "router.js",
     "root.js",
-    "http.js"
+    "http.js",
+    "form.js"
   ],
+  "scripts": {
+    "test": "node --test"
+  },
   "keywords": [
     "alpinejs",
     "alpine",

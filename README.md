@@ -221,6 +221,18 @@ export const session = () => ({
 
 It has to be a store, not component data — the guard runs outside Alpine and needs a reactive handle.
 
+## Tests
+
+```bash
+node --test
+```
+
+No runner to install, no configuration: Node has had one built in for a while, and `http.js` and `form.js` are plain modules that never needed a browser to be exercised. `fetch` is swapped for a recording stub, and a form is tested by spreading it into an object the way a page would.
+
+The rest — `router.js` and `root.js` — is not covered, because it only means anything inside a document with Alpine and Pinecone in it. That is honest rather than ideal: those two are exercised by the apps, by hand.
+
+Worth knowing if you add a test that waits on a timeout: `AbortSignal.timeout` uses an unref'd timer, so Node will drain the event loop and cancel the file unless something else holds it open.
+
 ## Dependencies
 
 All from jsDelivr, all pinned to an exact version in `index.js` — a range would change your app without you touching it:
