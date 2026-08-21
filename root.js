@@ -14,7 +14,8 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
     ...router,
     ...extend,
 
-    // What the app has to say, and what kind of thing it is: 'error' | 'success' | 'info'.
+    // What the app has to say, and what kind of thing it is. Only 'error' means anything
+    // here — it is the one that waits; the rest is the toast partial's own vocabulary.
     message: { text: '', type: 'error' },
 
     // seeded so x-html renders "" instead of "undefined" before the fetch lands

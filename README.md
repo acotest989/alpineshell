@@ -140,6 +140,8 @@ State is one object, `message` — `{ text, type }` — and your toast partial d
 
 An **error stays** until the visitor dismisses it or navigates; every other type clears itself after a few seconds. That asymmetry is the point: a failure is something to act on, an acknowledgement is something to notice.
 
+`'error'` is the only type the framework knows. `'success'`, `'info'`, `'warning'` or anything else you invent is vocabulary your toast defines — the starter gives four of them a colour apiece.
+
 `errMsg` still works — assigning to it is `notify(text, 'error')`, and reading it returns errors only, so a toast written before `message` existed can never paint a success as a failure.
 
 ## When something breaks
