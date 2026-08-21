@@ -105,6 +105,7 @@ Every page is nested in the root component, so these are one scope away:
 
 - `goTo(path)`, `goBack()` — navigation from code. Links stay plain `<a href>`; the router intercepts clicks itself, which keeps Ctrl+click and keyboard behaviour intact.
 - `notify(text, type)`, `dismiss()`, `message` — see below.
+- `form(values)`, `fieldError(fields)` — imported rather than inherited; see below.
 - `partials.<name>` — the markup you listed, ready for `x-html`.
 - whatever you passed as `app`.
 
@@ -130,6 +131,68 @@ State is one object, `message` — `{ text, type }` — and your toast partial d
 An **error stays** until the visitor dismisses it or navigates; every other type clears itself after a few seconds. That asymmetry is the point: a failure is something to act on, an acknowledgement is something to notice.
 
 `errMsg` still works — assigning to it is `notify(text, 'error')`, and reading it returns errors only, so a toast written before `message` existed can never paint a success as a failure.
+
+## Forms
+
+Every form ends up writing the same sequence: refuse a second submit, validate locally, raise a pending flag, put the server's complaints back on the right fields, lower the flag. `form()` is that sequence. Spread it into a page and add the two parts only the page can know:
+
+```js
+import { form } from 'alpineshell';
+
+export const loginPage = () => ({
+  ...form({ email: '', password: '' }),
+
+  validate() {                                   // optional; { field: message }
+    return { email: this.values.email ? '' : 'Required.' };
+  },
+
+  async save() {                                 // `this` is the page
+    await this.signIn(this.values.email, this.values.password);
+    this.goTo('/');
+  },
+});
+```
+
+```html
+<form @submit.prevent="submit()" novalidate>
+  <input x-model="values.email" @input="clear('email')" :disabled="pending" class="input">
+  <p x-show="errors.email" x-text="errors.email"></p>
+
+  <p x-show="error" x-text="error" role="alert"></p>
+  <button type="submit" :disabled="pending" x-text="pending ? 'Signing in…' : 'Sign in'"></button>
+</form>
+```
+
+You get `values`, `errors`, `error`, `pending`, `submit()`, `clear(field)` and `invalid()`. Validation runs before anything leaves the browser; if it fails, no request is made at all.
+
+**Errors land where they belong.** Some things only the server knows — that an address is taken, that a password is wrong. A service says which field by throwing `fieldError({ email: 'That address already has an account.' })`, and `submit()` puts each message on its field. An error without `.fields` becomes the form-wide `error` instead:
+
+```js
+import { fieldError } from 'alpineshell';
+
+// in your service, where you already know your backend's error shape
+throw fieldError({ email: 'That address already has an account.' });
+```
+
+A plain `Error` is treated as a sentence somebody wrote for the visitor and is shown as-is, quietly. Anything else — an `HttpError`, an SDK error, a `TypeError` — also gets logged with its stack, because that one is a failure rather than an outcome.
+
+To keep behaviour of your own around a failure, catch it in `save()` and rethrow:
+
+```js
+async save() {
+  try {
+    await this.signIn(this.values.email, this.values.password);
+  } catch (err) {
+    this.values.password = '';
+    this.$nextTick(() => this.$refs.password.focus());
+    throw err; // the message is still form()'s job
+  }
+}
+```
+
+**One form per page.** A page with two independent forms writes them out by hand; this is a mixin, not a component, and it can only be spread once.
+
+> **Do not put a getter in anything that gets spread** — not in `form()`'s page, not in the `app` object. A spread *calls* a getter and copies the answer, so it silently freezes at whatever it returned that first time. Use a method.
 
 ## Focus, on markup that was injected
 

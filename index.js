@@ -16,6 +16,7 @@ import { createRoot } from './root.js';
 
 export { http, errorMessage, HttpError } from './http.js';
 export { consumeRedirect, setPageTitle } from './router.js';
+export { form, fieldError } from './form.js';
 
 // The browser build only compiles <style type="text/tailwindcss"> tags, and picks up ones
 // added later. Not awaited: that would delay the registrations below past Alpine's start.
