@@ -226,14 +226,18 @@ It has to be a store, not component data — the guard runs outside Alpine and n
 ## Tests
 
 ```bash
-node --test
+npm test
 ```
 
-No runner to install, no configuration: Node has had one built in for a while, and `http.js` and `form.js` are plain modules that never needed a browser to be exercised. `fetch` is swapped for a recording stub, and a form is tested by spreading it into an object the way a page would.
+No runner to install, no configuration: Node has had one built in for a while. `http.js` and `form.js` are plain modules that never needed a browser to be exercised — `fetch` is swapped for a recording stub, and a form is tested by spreading it into an object the way a page would.
 
-The rest — `router.js` and `root.js` — is not covered, because it only means anything inside a document with Alpine and Pinecone in it. That is honest rather than ideal: those two are exercised by the apps, by hand.
+`router.js` and `root.js` do need a document, but far less of one than it sounds. Between them they listen for events, look for a single element, move focus, scroll and set a title. `test/dom.js` is that browser in about thirty lines of `EventTarget`, next to a Pinecone stand-in that records what the router asked of it. The guards are private to the module and reach the outside only by being handed to Pinecone, so a test takes them back out of the `settings()` call — the same way Pinecone gets them.
 
-Worth knowing if you add a test that waits on a timeout: `AbortSignal.timeout` uses an unref'd timer, so Node will drain the event loop and cancel the file unless something else holds it open.
+`index.js` is what is left uncovered: it imports four CDN URLs at the top, so loading it needs a network and a browser both.
+
+The script names the files rather than saying `node --test`, because Node treats *everything* under `test/` as a test file, and the stub is not one.
+
+Two things to know before adding a test. `AbortSignal.timeout` uses an unref'd timer, so a test waiting to be aborted has nothing holding the event loop open and Node will cancel the file. And the dismiss timer in `root.js` is module state, one per app: mock the timers with `t.mock.timers` rather than let a real one outlive the test that started it.
 
 ## Dependencies
 
