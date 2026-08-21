@@ -261,6 +261,21 @@ The script names the files rather than saying `node --test`, because Node treats
 
 Two things to know before adding a test. `AbortSignal.timeout` uses an unref'd timer, so a test waiting to be aborted has nothing holding the event loop open and Node will cancel the file. And the dismiss timer in `root.js` is module state, one per app: mock the timers with `t.mock.timers` rather than let a real one outlive the test that started it.
 
+## Releasing
+
+```bash
+# set the new version in package.json first
+git commit -am "0.5.4"
+git tag -a v0.5.4 -m "0.5.4"
+git push origin main --follow-tags
+```
+
+Then move the import map in every app to the new tag. Nothing reaches an app until that happens: jsDelivr serves the tag, not the branch.
+
+**Annotate the tag.** `git tag v0.5.4` makes a lightweight one, and `--follow-tags` pushes only annotated tags — so the commit lands, the tag silently does not, and every app pinned to it boots blank on a 404. Pushing by name (`git push origin v0.5.4`) works too.
+
+**Never move a published tag.** To jsDelivr a tag is content that could not have changed, cached accordingly, and an app can end up on the old files under the new number with no way to clear it. Release the next patch instead. A 404 it has already answered is cached as well, and `https://purge.jsdelivr.net/gh/acotest989/alpineshell@v0.5.4/index.js` clears one path, once an hour.
+
 ## Dependencies
 
 All from jsDelivr, all pinned to an exact version in `index.js` — a range would change your app without you touching it:
