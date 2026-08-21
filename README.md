@@ -24,7 +24,7 @@ In your HTML, before any module script:
 <script type="importmap">
 {
   "imports": {
-    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.1/index.js"
+    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.2/index.js"
   }
 }
 </script>

@@ -1,6 +1,6 @@
 {
   "name": "alpineshell",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "description": "Structure and conventions for Alpine.js apps — routing, pages, partials and stores, without a build step.",
   "type": "module",
   "main": "index.js",
