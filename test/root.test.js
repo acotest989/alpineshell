@@ -140,9 +140,24 @@ test('a partial that fails leaves the rest of the page standing', () =>
         await settle();
 
         assert.equal(app.partials.nav, '<nav></nav>', 'one failure is not the whole boot');
-        assert.equal(app.partials.broken, '');
+        assert.equal(app.partials.broken, '', 'nothing of the framework reaches a visitor');
         assert.match(app.errMsg, /broken/);
         assert.equal(errors.length, 1);
+      },
+    ),
+  ));
+
+test('with debug on, the gap reports itself where the gap is', () =>
+  captureConsole('error', () =>
+    withFetch(
+      async () => new Response('nope', { status: 500, headers: { 'content-type': 'text/plain' } }),
+      async () => {
+        const app = root({ partials: ['toast'], debug: true });
+        app.loadPartials();
+        await settle();
+
+        assert.match(app.partials.toast, /data-alpineshell-error/);
+        assert.match(app.partials.toast, /toast/, 'and names which one, since only the hole knows');
       },
     ),
   ));

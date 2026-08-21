@@ -1,10 +1,20 @@
 # AlpineShell
 
+[![Tests](https://github.com/acotest989/alpineshell/actions/workflows/test.yml/badge.svg)](https://github.com/acotest989/alpineshell/actions/workflows/test.yml)
+
 Structure and conventions for [Alpine.js](https://alpinejs.dev) apps — routing, pages, partials and stores — **without a build step**. Alpine gives you reactivity; this gives the app a shape.
 
 No package manager, nothing to compile: it is four ES modules loaded from a CDN.
 
 Looking for a project to start from? [alpineshell-starter](https://github.com/acotest989/alpineshell-starter).
+
+## Who it is for
+
+No build step is not a convenience here, it is the premise — which is why Tailwind runs through its browser build. The compiler goes to the visitor along with the page, and the CSS is produced on every load: a few hundred kilobytes, and a moment before styles land, which is what `x-cloak` covers.
+
+That is a good trade for an internal tool, an admin panel, a prototype, a demo, a small site. It is a bad one for a content site living on search traffic and link previews, where the first paint and the served HTML *are* the product.
+
+There is deliberately no CLI path alongside it. Adding one would mean a build step, and this would be a different framework. An app that outgrows the trade has outgrown this.
 
 ## Install
 
@@ -88,7 +98,7 @@ A route needing different chrome takes an object instead: `{ page, header, foote
 | `stores` | `{}` | store name → factory |
 | `app` | `{}` | extra state and methods merged into the root component |
 | `theme` | — | CSS fetched and injected as a `<style type="text/tailwindcss">` tag |
-| `debug` | `false` | boot log, `window.dbg`, and warnings about misconfiguration |
+| `debug` | `false` | boot log, `window.dbg`, warnings about misconfiguration, and a marker in place of a partial that failed to load |
 | `pagesDir` | `/pages` | where `<page>.html` is looked up |
 | `partialsDir` | `/partials` | where partials are looked up |
 | `targetId` | `page` | element the router renders into |
@@ -207,6 +217,8 @@ The element focuses itself instead:
 ## What it does that the router does not
 
 On every navigation: moves focus to the new `<main>` so screen readers announce the page, sets the title, clears the previous error. A protected route with no session remembers where it bounced you from, so signing in returns you there.
+
+The title is the only thing in `<head>` the router touches, and that is on purpose. A description and `og:` tags would look like they worked without working: link unfurlers — Slack, WhatsApp, Facebook, X, LinkedIn — run no JavaScript at all, and read the HTML that was served. Whatever a router sets after a render is invisible to every one of them, Google being the exception rather than the rule. Put one static set in your `index.html`, and let the title be the part that changes, since a person is who reads it.
 
 A page you arrive at starts at the top; back and forward keep the place you had. That second half is the browser's own work — `history.scrollRestoration` is `'auto'` and it remembers positions per history entry — so the framework does nothing but leave it alone. It only holds up while the content is back in place when the browser tries; a route that is still fetching when you return has nothing tall enough to scroll, and you land as far down as it fits.
 

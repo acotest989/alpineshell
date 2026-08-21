@@ -64,6 +64,14 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
           .catch((err) => {
             console.error(`AlpineShell: partial '${name}' failed —`, err);
             this.errMsg = `Could not load: ${name}`;
+
+            // The gap reports itself, where the gap is. A message app-wide cannot
+            // point at a place, and has nowhere to render at all when the partial
+            // that failed is the toast. Never in production: a visitor is owed a
+            // page, not a report, and the markup here belongs to no design.
+            if (debug) {
+              this.partials[name] = `<div data-alpineshell-error>Partial failed: ${name}</div>`;
+            }
           });
       });
     },
