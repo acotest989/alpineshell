@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { installDom, captureConsole } from './dom.js';
-import { createRoot } from '../root.js';
+import { createRoot, catchPageErrors } from '../root.js';
 
 const NOTICE_TIMEOUT = 4000; // root.js clears anything that is not an error after this
 
@@ -193,4 +193,58 @@ test('an app with no init of its own still boots', async () => {
 
   assert.equal(app.money(250), 2.5, 'what the app added is on every page');
   assert.equal(typeof app.goTo, 'function', 'and so is the router');
+});
+
+// --- a page that throws ---
+
+// errMsg belongs to the root; in an app a page reaches it one scope up.
+const mounted = (factory, name = 'homePage') => {
+  const page = catchPageErrors(name, factory)();
+  page.errMsg = '';
+  return page;
+};
+
+test('a page that throws in init says so, instead of leaving chrome around nothing', async () => {
+  const page = mounted(() => ({
+    async init() {
+      throw new Error('That product does not exist.');
+    },
+  }));
+
+  await page.init();
+
+  assert.equal(page.errMsg, 'That product does not exist.');
+});
+
+test('an authored sentence is shown quietly, a real failure keeps its trace', () =>
+  captureConsole('error', async (errors) => {
+    const authored = mounted(() => ({ init() { throw new Error('Sold out.'); } }));
+    const crash = mounted(() => ({ init() { throw new TypeError('x is not a function'); } }));
+
+    await authored.init();
+    await crash.init();
+
+    assert.equal(authored.errMsg, 'Sold out.');
+    assert.equal(crash.errMsg, 'x is not a function');
+    assert.equal(errors.length, 1, 'only the failure is a failure');
+  }));
+
+test('a page with no init is handed over untouched', () => {
+  const page = catchPageErrors('cartPage', () => ({ items: [] }))();
+
+  assert.deepEqual(page, { items: [] });
+});
+
+test('what x-data passed and what init returns still get through', async () => {
+  const page = catchPageErrors('productPage', (handle) => ({
+    handle,
+    async init() {
+      return 'done';
+    },
+  }))('shoes');
+  page.errMsg = '';
+
+  assert.equal(page.handle, 'shoes');
+  assert.equal(await page.init(), 'done');
+  assert.equal(page.errMsg, '');
 });

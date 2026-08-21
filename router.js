@@ -1,6 +1,6 @@
 // Filled by createApp() — the app owns the routes, this file owns the mechanics.
 let config = {
-  routes: {},        // route pattern -> page name
+  routes: {},
   protected: [],     // prefix match: '/admin' also covers '/admin/users'
   titles: {},        // page name -> title, overrides the name itself
   siteName: '',
@@ -41,7 +41,6 @@ function normalizeIndex(ctx) {
   }
 }
 
-// Runs before every route and before any template renders.
 // Navigating from a handler cancels the remaining ones, so no redirect loop.
 function authGuard(ctx) {
   const signedIn = Alpine.store('session')?.isAuthenticated;
@@ -85,12 +84,11 @@ function titleHandler(ctx) {
 }
 
 // --- scroll ---
-// Back and forward restore the scroll position themselves — scrollRestoration is
-// 'auto' and the browser remembers more than we could. Only a page the visitor is
-// arriving at, rather than returning to, starts at the top.
+// Back and forward restore the position themselves, scrollRestoration being 'auto'.
+// Only a page the visitor is arriving at, rather than returning to, starts at the top.
 let cameFromHistory = false;
 
-// Read once: the flag is set before the route renders and answers for that render only.
+// Set before the route renders, and answers for that render only.
 function startsAtTop() {
   const returning = cameFromHistory;
   cameFromHistory = false;

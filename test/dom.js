@@ -1,7 +1,5 @@
-// router.js and root.js only mean anything inside a document — but not much of a
-// document. Between them they listen for events, look for one element, move focus,
-// scroll and set a title. That is an EventTarget and a handful of methods, and Node
-// has EventTarget, so the browser here is about thirty lines rather than a package.
+// All the browser router.js and root.js actually need: an EventTarget, one element,
+// a title and a scroll. Node has EventTarget, so this is it — no package required.
 
 // Stands in for the <main> the router hands focus to after a render.
 export function fakeMain({ holdsFocus = false } = {}) {

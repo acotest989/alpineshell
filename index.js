@@ -12,7 +12,7 @@ import pineconeRouter from 'https://cdn.jsdelivr.net/npm/pinecone-router@7.6.0/d
 
 import { http } from './http.js';
 import { configureRouter } from './router.js';
-import { createRoot } from './root.js';
+import { createRoot, catchPageErrors } from './root.js';
 
 export { http, errorMessage, HttpError } from './http.js';
 export { consumeRedirect, setPageTitle } from './router.js';
@@ -29,23 +29,9 @@ function loadTheme(url) {
   })().catch((err) => console.error('Theme failed to load:', err));
 }
 
-/**
- * routes    route pattern -> page name ('/products/:handle': 'product'), or
- *           { page, header, footer } when a route needs different chrome
- * titles    page name -> title; anything missing falls back to the name
- * protected route prefixes that require a session
- * partials  names under /partials that you render yourself with x-html, loaded once
- *           into app.partials. Header and footer are not listed here — the router
- *           adds them to each route's templates, per route rather than globally.
- * pages     component name -> factory, registered as-is
- * stores    store name -> factory
- * app       extra state and methods merged into the root component
- * debug     boot log and window.dbg for the console
- *
- * Conventions, all overridable: pagesDir '/pages', partialsDir '/partials',
- * targetId 'page', header 'header', footer 'footer' (null drops either),
- * loginPath '/login', homePath '/', siteName from <title>.
- */
+// Every option and its default is the table in the README. The one thing worth
+// repeating at the call site: header and footer are not `partials`. The router adds
+// them to each route's own templates, per route rather than globally.
 export function createApp({
   routes = {},
   titles = {},
@@ -76,7 +62,9 @@ export function createApp({
 
   // Stores first: a page component may read one while initialising.
   for (const [name, factory] of Object.entries(stores)) Alpine.store(name, factory());
-  for (const [name, factory] of Object.entries(pages)) Alpine.data(name, factory);
+  for (const [name, factory] of Object.entries(pages)) {
+    Alpine.data(name, catchPageErrors(name, factory));
+  }
 
   // The router already fetches the chrome; listing it again downloads it twice.
   if (debug) {

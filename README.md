@@ -4,7 +4,7 @@
 
 Structure and conventions for [Alpine.js](https://alpinejs.dev) apps — routing, pages, partials and stores — **without a build step**. Alpine gives you reactivity; this gives the app a shape.
 
-No package manager, nothing to compile: it is four ES modules loaded from a CDN.
+No package manager, nothing to compile: it is five ES modules loaded from a CDN.
 
 Looking for a project to start from? [alpineshell-starter](https://github.com/acotest989/alpineshell-starter).
 
@@ -24,7 +24,7 @@ In your HTML, before any module script:
 <script type="importmap">
 {
   "imports": {
-    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.3.0/index.js"
+    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.1/index.js"
   }
 }
 </script>
@@ -94,7 +94,7 @@ A route needing different chrome takes an object instead: `{ page, header, foote
 | `titles` | `{}` | page name → title; anything missing falls back to the name itself |
 | `protected` | `[]` | route prefixes that require a session (`/admin` covers `/admin/users`) |
 | `partials` | `[]` | partials **you** render with `x-html`, loaded into `app.partials` |
-| `pages` | `{}` | component name → factory, registered as-is |
+| `pages` | `{}` | component name → factory |
 | `stores` | `{}` | store name → factory |
 | `app` | `{}` | extra state and methods merged into the root component |
 | `theme` | — | CSS fetched and injected as a `<style type="text/tailwindcss">` tag |
@@ -142,6 +142,16 @@ An **error stays** until the visitor dismisses it or navigates; every other type
 
 `errMsg` still works — assigning to it is `notify(text, 'error')`, and reading it returns errors only, so a toast written before `message` existed can never paint a success as a failure.
 
+## When something breaks
+
+Three failures are the framework's to notice, and none of them ends as a blank page:
+
+- a **template that will not load** — the router fetches its own, and a bad path would otherwise leave the target empty
+- a **partial that will not load** — the rest of the page still stands, and with `debug` on the gap reports itself in its own place. An app-wide message cannot point at a place, and would have nowhere to render at all if the toast is what failed.
+- a **page whose `init()` throws** — Alpine calls it, so nothing else would catch it
+
+That last one follows `form()`'s rule: a plain `Error` is a sentence someone wrote for the visitor and is shown as it is, while anything else is shown *and* logged with its stack, because that one is a failure rather than an outcome.
+
 ## Forms
 
 Every form ends up writing the same sequence: refuse a second submit, validate locally, raise a pending flag, put the server's complaints back on the right fields, lower the flag. `form()` is that sequence. Spread it into a page and add the two parts only the page can know:
@@ -184,7 +194,7 @@ import { fieldError } from 'alpineshell';
 throw fieldError({ email: 'That address already has an account.' });
 ```
 
-A plain `Error` is treated as a sentence somebody wrote for the visitor and is shown as-is, quietly. Anything else — an `HttpError`, an SDK error, a `TypeError` — also gets logged with its stack, because that one is a failure rather than an outcome.
+Which of them is shown quietly and which also reaches the console is the rule in [When something breaks](#when-something-breaks).
 
 To keep behaviour of your own around a failure, catch it in `save()` and rethrow:
 

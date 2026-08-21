@@ -1,15 +1,14 @@
-import { http } from './http.js';
+import { http, errorMessage } from './http.js';
 import { router } from './router.js';
 
 const PARTIAL_TIMEOUT = 5000; // local files; a longer wait would only stall the boot
 const NOTICE_TIMEOUT = 4000; // long enough to read a sentence, short enough not to nag
 
-// One root component per app, so the timer belongs to the module, not to the state
-// every page can see through the scope chain.
+// One root per app, so the timer belongs to the module rather than to state every
+// page can see through the scope chain.
 let noticeTimer = null;
 
-// The root component every page is nested in: navigation, shared markup, app-wide errors.
-// `extend` is merged in, so the app can add its own state and methods.
+// The component every page is nested in: navigation, shared markup, app-wide errors.
 export function createRoot({ partials = [], partialsDir = '/partials', extend = {}, debug = false }) {
   return () => ({
     ...router,
@@ -46,8 +45,8 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
       this.message = { text: '', type: this.message.type }; // the type outlives the text, so a leave transition keeps its colour
     },
 
-    // Kept for apps and partials written before message existed. Reading returns
-    // errors only, so an older toast can never paint a success as a failure.
+    // Kept for markup written before message existed. Reading returns errors only,
+    // so an older toast can never paint a success as a failure.
     get errMsg() {
       return this.message.type === 'error' ? this.message.text : '';
     },
@@ -65,10 +64,9 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
             console.error(`AlpineShell: partial '${name}' failed —`, err);
             this.errMsg = `Could not load: ${name}`;
 
-            // The gap reports itself, where the gap is. A message app-wide cannot
-            // point at a place, and has nowhere to render at all when the partial
-            // that failed is the toast. Never in production: a visitor is owed a
-            // page, not a report, and the markup here belongs to no design.
+            // An app-wide message cannot point at a place, and has nowhere to render
+            // at all when the partial that failed is the toast. Development only: a
+            // visitor is owed a page, not a report.
             if (debug) {
               this.partials[name] = `<div data-alpineshell-error>Partial failed: ${name}</div>`;
             }
@@ -76,4 +74,27 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
       });
     },
   });
+}
+
+// Alpine calls a page's init() itself, so nothing else catches one that throws and
+// the visitor is left with chrome around an empty target. Same rule as form(): a
+// plain Error is a sentence for the visitor, anything else keeps its trace.
+export function catchPageErrors(name, factory) {
+  return (...args) => {
+    const page = factory(...args);
+    if (!page.init) return page;
+
+    const init = page.init;
+
+    page.init = async function (...initArgs) {
+      try {
+        return await init.apply(this, initArgs);
+      } catch (err) {
+        this.errMsg = errorMessage(err, 'This page could not be opened.');
+        if (err.name !== 'Error') console.error(`AlpineShell: ${name} failed to start —`, err);
+      }
+    };
+
+    return page;
+  };
 }
