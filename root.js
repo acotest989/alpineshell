@@ -77,8 +77,8 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
 }
 
 // Alpine calls a page's init() itself, so nothing else catches one that throws and
-// the visitor is left with chrome around an empty target. Same rule as form(): a
-// plain Error is a sentence for the visitor, anything else keeps its trace.
+// the visitor is left with chrome around an empty target. Whatever lands here the
+// page did not handle, so it always keeps its trace.
 export function catchPageErrors(name, factory) {
   return (...args) => {
     const page = factory(...args);
@@ -91,7 +91,7 @@ export function catchPageErrors(name, factory) {
         return await init.apply(this, initArgs);
       } catch (err) {
         this.errMsg = errorMessage(err, 'This page could not be opened.');
-        if (err.name !== 'Error') console.error(`AlpineShell: ${name} failed to start —`, err);
+        console.error(`AlpineShell: ${name} failed to start —`, err);
       }
     };
 

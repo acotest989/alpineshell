@@ -24,7 +24,7 @@ In your HTML, before any module script:
 <script type="importmap">
 {
   "imports": {
-    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.2/index.js"
+    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.3/index.js"
   }
 }
 </script>
@@ -150,7 +150,7 @@ Three failures are the framework's to notice, and none of them ends as a blank p
 - a **partial that will not load** — the rest of the page still stands, and with `debug` on the gap reports itself in its own place. An app-wide message cannot point at a place, and would have nowhere to render at all if the toast is what failed.
 - a **page whose `init()` throws** — Alpine calls it, so nothing else would catch it
 
-That last one follows `form()`'s rule: a plain `Error` is a sentence someone wrote for the visitor and is shown as it is, while anything else is shown *and* logged with its stack, because that one is a failure rather than an outcome.
+The visitor gets the error's own sentence, or *This page could not be opened.* when it has none. The console gets the stack either way: whatever reaches that last one is something the page did not handle, unlike a failed submit, which `form()` treats as an outcome and shows quietly.
 
 ## Forms
 

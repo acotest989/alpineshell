@@ -216,7 +216,7 @@ test('a page that throws in init says so, instead of leaving chrome around nothi
   assert.equal(page.errMsg, 'That product does not exist.');
 });
 
-test('an authored sentence is shown quietly, a real failure keeps its trace', () =>
+test('the visitor gets the sentence, the console gets the trace either way', () =>
   captureConsole('error', async (errors) => {
     const authored = mounted(() => ({ init() { throw new Error('Sold out.'); } }));
     const crash = mounted(() => ({ init() { throw new TypeError('x is not a function'); } }));
@@ -226,7 +226,7 @@ test('an authored sentence is shown quietly, a real failure keeps its trace', ()
 
     assert.equal(authored.errMsg, 'Sold out.');
     assert.equal(crash.errMsg, 'x is not a function');
-    assert.equal(errors.length, 1, 'only the failure is a failure');
+    assert.equal(errors.length, 2, 'a page that did not open was never routine');
   }));
 
 test('a page with no init is handed over untouched', () => {
