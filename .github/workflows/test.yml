@@ -1,0 +1,25 @@
+# The suite, on GitHub's machine, against a clean checkout of what was actually
+# pushed — which is the part a local run cannot tell you.
+name: Tests
+
+on: [push, pull_request]
+
+# Nothing here writes anything back to the repository.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 22 is the floor, not a preference: `node --test` only learned to expand a
+      # glob of its own there, and the test script names its files.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No install step: the framework has no dependencies and neither do the tests.
+      - run: npm test
