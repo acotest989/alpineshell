@@ -206,7 +206,9 @@ The element focuses itself instead:
 
 ## What it does that the router does not
 
-On every navigation: resets scroll, moves focus to the new `<main>` so screen readers announce the page, sets the title, clears the previous error. A protected route with no session remembers where it bounced you from, so signing in returns you there.
+On every navigation: moves focus to the new `<main>` so screen readers announce the page, sets the title, clears the previous error. A protected route with no session remembers where it bounced you from, so signing in returns you there.
+
+A page you arrive at starts at the top; back and forward keep the place you had. That second half is the browser's own work — `history.scrollRestoration` is `'auto'` and it remembers positions per history entry — so the framework does nothing but leave it alone. It only holds up while the content is back in place when the browser tries; a route that is still fetching when you return has nothing tall enough to scroll, and you land as far down as it fits.
 
 ## Session
 

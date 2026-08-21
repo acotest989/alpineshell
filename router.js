@@ -84,6 +84,19 @@ function titleHandler(ctx) {
   setPageTitle(config.titles[page] ?? titleFromName(page));
 }
 
+// --- scroll ---
+// Back and forward restore the scroll position themselves — scrollRestoration is
+// 'auto' and the browser remembers more than we could. Only a page the visitor is
+// arriving at, rather than returning to, starts at the top.
+let cameFromHistory = false;
+
+// Read once: the flag is set before the route renders and answers for that render only.
+function startsAtTop() {
+  const returning = cameFromHistory;
+  cameFromHistory = false;
+  return !returning;
+}
+
 // --- setup ---
 export const router = {
   initRouter() {
@@ -127,15 +140,18 @@ export const router = {
       this.errMsg = `Page could not be loaded: ${detail.url}`;
     });
 
+    // Only back and forward raise this; navigate() uses pushState, which does not.
+    window.addEventListener('popstate', () => (cameFromHistory = true));
+
     // A rendered route is a new page to the user, but not to the browser.
     document.addEventListener('pinecone:end', () => {
-      window.scrollTo(0, 0);
+      if (startsAtTop()) window.scrollTo(0, 0);
 
       const main = document.querySelector(`#${config.targetId} main`);
       if (!main || main.contains(document.activeElement)) return; // a page may focus its own field
 
       main.setAttribute('tabindex', '-1'); // focusable programmatically, not by tabbing
-      main.focus({ preventScroll: true }); // we just scrolled to the top ourselves
+      main.focus({ preventScroll: true }); // focusing scrolls into view, which would undo a restored position
     });
   },
 
