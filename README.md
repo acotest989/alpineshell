@@ -93,6 +93,7 @@ A route needing different chrome takes an object instead: `{ page, header, foote
 | `routes` | `{}` | route pattern → page name, or `{ page, header, footer }` |
 | `titles` | `{}` | page name → title; anything missing falls back to the name itself |
 | `protected` | `[]` | route prefixes that require a session (`/admin` covers `/admin/users`) |
+| `allow` | `{}` | route prefix → `(session) => boolean`, for what a session alone does not grant; see [Beyond a session](#beyond-a-session) |
 | `partials` | `[]` | partials **you** render with `x-html`, loaded into `app.partials` |
 | `pages` | `{}` | component name → factory |
 | `stores` | `{}` | store name → factory |
@@ -228,7 +229,7 @@ The element focuses itself instead:
 
 ## What it does that the router does not
 
-On every navigation: moves focus to the new `<main>` so screen readers announce the page, sets the title, clears the previous error. A protected route with no session remembers where it bounced you from, so signing in returns you there.
+On every navigation: moves focus to the new `<main>` so screen readers announce the page, sets the title, clears the previous error. A protected route with no session remembers where it bounced you from, so signing in returns you there. A route the session does not qualify for, under `allow`, sends you home before anything of it renders.
 
 The title is the only thing in `<head>` the router touches, and that is on purpose. A description and `og:` tags would look like they worked without working: link unfurlers — Slack, WhatsApp, Facebook, X, LinkedIn — run no JavaScript at all, and read the HTML that was served. Whatever a router sets after a render is invisible to every one of them, Google being the exception rather than the rule. Put one static set in your `index.html`, and let the title be the part that changes, since a person is who reads it.
 
@@ -246,6 +247,21 @@ export const session = () => ({
 ```
 
 It has to be a store, not component data — the guard runs outside Alpine and needs a reactive handle.
+
+## Beyond a session
+
+`protected` asks one question: is anybody signed in. Some parts of an app are for some accounts only, and `allow` asks the rest, per prefix:
+
+```js
+createApp({
+  protected: ['/account'],
+  allow: { '/admin': (session) => session.user?.admin === true },
+});
+```
+
+The function is handed the session store, so the question is whatever that store can answer. Without a session, a prefix in `allow` is a protected one: off to the login page, and back once signed in. Signed in and refused, the visitor goes to `homePath` instead — signing in again would change nothing. Where more than one prefix covers a path, every condition has to hold.
+
+The difference from a check inside the page is when it happens. The guard runs before the route's templates are fetched, so a refused visitor never sees the page, or its header, for even a frame. It hides pages, not files: `/pages/admin.html` is as public as anything else the app serves, and what an account may read or change is for the server to refuse.
 
 ## Tests
 

@@ -9,6 +9,7 @@ import { configureRouter, consumeRedirect, setPageTitle, router } from '../route
 const BASE = {
   routes: {},
   protected: [],
+  allow: {},
   titles: {},
   siteName: 'Shop',
   loginPath: '/login',
@@ -88,6 +89,16 @@ test('a protected prefix with no route behind it is a warning', () =>
     assert.match(warnings[0][0], /\/account/);
   }));
 
+test('so is a condition with no route behind it', () =>
+  captureConsole('warn', (warnings) => {
+    const allowed = () => true;
+    setup({ routes: { '/': 'home' }, allow: { '/admin': allowed }, debug: true });
+    router.initRouter();
+
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0][0], /\/admin/);
+  }));
+
 test('with debug off the same misconfiguration is silent', () =>
   captureConsole('warn', (warnings) => {
     setup({ routes: { '/': 'home' }, protected: ['/account'] });
@@ -150,6 +161,74 @@ test('with nowhere remembered, the login page sends a signed-in visitor home', (
   handlers(pinecone).authGuard(ctx('/login'));
 
   assert.deepEqual(pinecone.calls.navigated, ['/']);
+});
+
+// --- beyond a session ---
+
+const admins = { '/admin': (session) => session.user.admin === true };
+
+test('a condition sends a signed-in visitor who fails it home, not to sign in', () => {
+  const { pinecone } = setup(
+    { allow: admins, homePath: '/' },
+    { session: { isAuthenticated: true, user: { admin: false } } },
+  );
+  router.initRouter();
+
+  handlers(pinecone).authGuard(ctx('/admin/orders'));
+
+  assert.deepEqual(pinecone.calls.navigated, ['/'], 'the prefix covers what is under it');
+});
+
+test('a visitor who meets the condition passes', () => {
+  const { pinecone } = setup(
+    { allow: admins },
+    { session: { isAuthenticated: true, user: { admin: true } } },
+  );
+  router.initRouter();
+
+  handlers(pinecone).authGuard(ctx('/admin'));
+
+  assert.deepEqual(pinecone.calls.navigated, []);
+});
+
+test('without a session a condition is a protected route: sign in, and come back', () => {
+  consumeRedirect(); // whatever an earlier navigation may have left
+  const { pinecone } = setup({ allow: admins }, { session: { isAuthenticated: false } });
+  router.initRouter();
+
+  handlers(pinecone).authGuard(ctx('/admin'));
+
+  assert.deepEqual(pinecone.calls.navigated, ['/login'], 'the condition is not asked without a session');
+  assert.equal(consumeRedirect(), '/admin');
+});
+
+test('every condition over a path has to hold', () => {
+  const { pinecone } = setup(
+    { allow: { '/admin': () => true, '/admin/billing': () => false } },
+    { session: { isAuthenticated: true } },
+  );
+  router.initRouter();
+  const { authGuard } = handlers(pinecone);
+
+  authGuard(ctx('/admin/orders'));
+  authGuard(ctx('/admin/billing'));
+
+  assert.deepEqual(pinecone.calls.navigated, ['/']);
+});
+
+test('a condition is not asked about a path outside its prefix', () => {
+  let asked = 0;
+  const refuse = () => {
+    asked += 1;
+    return false;
+  };
+  const { pinecone } = setup({ allow: { '/admin': refuse } }, { session: null });
+  router.initRouter();
+
+  handlers(pinecone).authGuard(ctx('/products/lamp'));
+
+  assert.deepEqual(pinecone.calls.navigated, []);
+  assert.equal(asked, 0);
 });
 
 test('a direct hit on /index.html becomes the path the app knows', () => {

@@ -36,6 +36,7 @@ export function createApp({
   routes = {},
   titles = {},
   protected: protectedRoutes = [],
+  allow = {},
   partials = [],
   pages = {},
   stores = {},
@@ -55,7 +56,7 @@ export function createApp({
   Alpine.plugin(pineconeRouter);
 
   configureRouter({
-    routes, titles, protected: protectedRoutes,
+    routes, titles, protected: protectedRoutes, allow,
     siteName, loginPath, homePath,
     pagesDir, partialsDir, targetId, header, footer, debug,
   });

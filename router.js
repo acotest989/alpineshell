@@ -2,6 +2,7 @@
 let config = {
   routes: {},
   protected: [],     // prefix match: '/admin' also covers '/admin/users'
+  allow: {},         // prefix -> (session) => boolean, for what a session alone does not grant
   titles: {},        // page name -> title, overrides the name itself
   siteName: '',
   loginPath: '/login',
@@ -41,14 +42,27 @@ function normalizeIndex(ctx) {
   }
 }
 
-// Navigating from a handler cancels the remaining ones, so no redirect loop.
+// Navigating from a handler cancels the remaining ones, so no redirect loop — and none of
+// the route's templates is fetched, which is what keeps a refused page off the screen.
 function authGuard(ctx) {
-  const signedIn = Alpine.store('session')?.isAuthenticated;
-  const isProtected = config.protected.some((route) => ctx.path.startsWith(route));
+  const session = Alpine.store('session');
+  const signedIn = session?.isAuthenticated;
+  const under = (route) => ctx.path.startsWith(route);
+
+  // A prefix with a condition is protected as well: nobody meets one without a session.
+  const conditions = Object.entries(config.allow).filter(([route]) => under(route));
+  const isProtected = config.protected.some(under) || conditions.length > 0;
 
   if (isProtected && !signedIn) {
     redirectTo = ctx.path;
     pinecone().navigate(config.loginPath);
+    return;
+  }
+
+  // Signed in, but not somebody this part of the app is for. Home, not the login page, which
+  // could do nothing about it.
+  if (!conditions.every(([, allowed]) => allowed(session))) {
+    pinecone().navigate(config.homePath);
     return;
   }
 
@@ -57,14 +71,15 @@ function authGuard(ctx) {
   }
 }
 
-// A protected prefix is only a condition — it does not create a route. Without a matching
-// one, a signed-in visitor reaches the guard, passes, and lands on notfound.
+// A guarded prefix is only a condition — it does not create a route. Without a matching
+// one, a visitor who passes the guard lands on notfound.
 function warnAboutOrphanGuards() {
   const paths = Object.keys(config.routes);
-  const orphans = config.protected.filter((prefix) => !paths.some((path) => path.startsWith(prefix)));
+  const prefixes = [...new Set([...config.protected, ...Object.keys(config.allow)])];
+  const orphans = prefixes.filter((prefix) => !paths.some((path) => path.startsWith(prefix)));
 
   if (orphans.length) {
-    console.warn(`AlpineShell: protected prefixes with no route — ${orphans.join(', ')}`);
+    console.warn(`AlpineShell: guarded prefixes with no route — ${orphans.join(', ')}`);
   }
 }
 
