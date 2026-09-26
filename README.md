@@ -4,7 +4,7 @@
 
 Structure and conventions for [Alpine.js](https://alpinejs.dev) apps — routing, pages, partials and stores — **without a build step**. Alpine gives you reactivity; this gives the app a shape.
 
-No package manager, nothing to compile: it is five ES modules loaded from a CDN.
+No package manager, nothing to compile: it is six ES modules loaded from a CDN.
 
 Looking for a project to start from? [alpineshell-starter](https://github.com/acotest989/alpineshell-starter).
 
@@ -24,7 +24,7 @@ In your HTML, before any module script:
 <script type="importmap">
 {
   "imports": {
-    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.4/index.js"
+    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.6/index.js"
   }
 }
 </script>
@@ -98,6 +98,7 @@ A route needing different chrome takes an object instead: `{ page, header, foote
 | `pages` | `{}` | component name → factory |
 | `stores` | `{}` | store name → factory |
 | `app` | `{}` | extra state and methods merged into the root component |
+| `texts` | English | the few sentences the framework says itself, in the app's language; see [In another language](#in-another-language) |
 | `theme` | — | CSS fetched and injected as a `<style type="text/tailwindcss">` tag |
 | `debug` | `false` | boot log, `window.dbg`, warnings about misconfiguration, and a marker in place of a partial that failed to load |
 | `pagesDir` | `/pages` | where `<page>.html` is looked up |
@@ -154,6 +155,30 @@ Three failures are the framework's to notice, and none of them ends as a blank p
 - a **page whose `init()` throws** — Alpine calls it, so nothing else would catch it
 
 The visitor gets the error's own sentence, or *This page could not be opened.* when it has none. The console gets the stack either way: whatever reaches that last one is something the page did not handle, unlike a failed submit, which `form()` treats as an outcome and shows quietly.
+
+## In another language
+
+Everything a visitor reads is the app's own markup, except six sentences the framework says itself, all of them about something going wrong. They are English, and `texts` says them in the app's language:
+
+```js
+createApp({
+  texts: {
+    error: 'Nešto nije u redu.',
+    pageFailed: 'Ova stranica se nije mogla otvoriti.',
+  },
+});
+```
+
+| Key | English | Said when |
+|---|---|---|
+| `error` | Something went wrong. | a form's `save()` fails with nothing to say, and the page gave `form()` no `fallback` |
+| `checkForm` | Please check the form. | a service throws `fieldError()` without a message of its own |
+| `pageFailed` | This page could not be opened. | a page's `init()` throws with nothing to say |
+| `pageNotLoaded` | Page could not be loaded: {url} | the router cannot fetch a route's template |
+| `partialNotLoaded` | Could not load: {name} | a partial will not load |
+| `timedOut` | Request timed out after {ms}ms: {url} | `http` gives up waiting |
+
+A `{name}` is filled in, and a translation is free to leave it out: a visitor has no use for a URL. A key left out stays English; one the framework does not have is a warning with `debug` on. How the app translates the rest is its own business, and whatever `t()` it has passes straight in here.
 
 ## Forms
 
@@ -283,16 +308,16 @@ Two things to know before adding a test. `AbortSignal.timeout` uses an unref'd t
 
 ```bash
 # set the new version in package.json first
-git commit -am "0.5.4"
-git tag -a v0.5.4 -m "0.5.4"
+git commit -am "0.5.6"
+git tag -a v0.5.6 -m "0.5.6"
 git push origin main --follow-tags
 ```
 
 Then move the import map in every app to the new tag. Nothing reaches an app until that happens: jsDelivr serves the tag, not the branch.
 
-**Annotate the tag.** `git tag v0.5.4` makes a lightweight one, and `--follow-tags` pushes only annotated tags — so the commit lands, the tag silently does not, and every app pinned to it boots blank on a 404. Pushing by name (`git push origin v0.5.4`) works too.
+**Annotate the tag.** `git tag v0.5.6` makes a lightweight one, and `--follow-tags` pushes only annotated tags — so the commit lands, the tag silently does not, and every app pinned to it boots blank on a 404. Pushing by name (`git push origin v0.5.6`) works too.
 
-**Never move a published tag.** To jsDelivr a tag is content that could not have changed, cached accordingly, and an app can end up on the old files under the new number with no way to clear it. Release the next patch instead. A 404 it has already answered is cached as well, and `https://purge.jsdelivr.net/gh/acotest989/alpineshell@v0.5.4/index.js` clears one path, once an hour.
+**Never move a published tag.** To jsDelivr a tag is content that could not have changed, cached accordingly, and an app can end up on the old files under the new number with no way to clear it. Release the next patch instead. A 404 it has already answered is cached as well, and `https://purge.jsdelivr.net/gh/acotest989/alpineshell@v0.5.6/index.js` clears one path, once an hour.
 
 ## Dependencies
 

@@ -1,5 +1,7 @@
 // Fetch wrapper: auto JSON, throws HttpError on !ok, timeout, query params.
 
+import { text } from "./texts.js";
+
 class HttpError extends Error {
   constructor(response, data) {
     super(`HTTP ${response.status} ${response.statusText || ""} — ${response.url}`);
@@ -73,7 +75,7 @@ function createClient(config = {}) {
         signal: signals.length > 1 ? AbortSignal.any(signals) : signals[0],
       });
     } catch (err) {
-      if (err.name === "TimeoutError") throw new Error(`Request timed out after ${timeout}ms: ${url}`);
+      if (err.name === "TimeoutError") throw new Error(text("timedOut", { ms: timeout, url }));
       throw err;
     }
 

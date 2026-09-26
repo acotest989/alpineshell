@@ -1,3 +1,5 @@
+import { text } from './texts.js';
+
 // Filled by createApp() — the app owns the routes, this file owns the mechanics.
 let config = {
   routes: {},
@@ -150,7 +152,7 @@ export const router = {
     // the router fetches its own templates; without this a failed fetch is a blank page
     document.addEventListener('pinecone:fetch-error', ({ detail }) => {
       console.error(detail.error);
-      this.errMsg = `Page could not be loaded: ${detail.url}`;
+      this.errMsg = text('pageNotLoaded', { url: detail.url });
     });
 
     // Only back and forward raise this; navigate() uses pushState, which does not.

@@ -13,6 +13,7 @@ import pineconeRouter from 'https://cdn.jsdelivr.net/npm/pinecone-router@7.6.0/d
 import { http } from './http.js';
 import { configureRouter } from './router.js';
 import { createRoot, catchPageErrors } from './root.js';
+import { setTexts } from './texts.js';
 
 export { http, errorMessage, HttpError } from './http.js';
 export { consumeRedirect, setPageTitle } from './router.js';
@@ -41,6 +42,7 @@ export function createApp({
   pages = {},
   stores = {},
   app = {},
+  texts = {},
   theme,
   siteName = document.title,
   loginPath = '/login',
@@ -54,6 +56,12 @@ export function createApp({
 }) {
   Alpine.plugin(persist);
   Alpine.plugin(pineconeRouter);
+
+  // Before anything can go wrong, so the first failure is already said in the app's language.
+  const unknownTexts = setTexts(texts);
+  if (debug && unknownTexts.length) {
+    console.warn(`AlpineShell: no such text — ${unknownTexts.join(', ')}`);
+  }
 
   configureRouter({
     routes, titles, protected: protectedRoutes, allow,

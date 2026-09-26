@@ -1,9 +1,10 @@
 import { errorMessage } from './http.js';
+import { text } from './texts.js';
 
 // Spread into a page: values, per-field errors, one form-wide error, a pending flag,
 // and the submit sequence every form was writing out by hand. The page adds the two
 // parts only it can know, validate() and save() — README, "Forms".
-export function form(values = {}, { fallback = 'Something went wrong.' } = {}) {
+export function form(values = {}, { fallback } = {}) {
   return {
     values: { ...values },
     errors: Object.fromEntries(Object.keys(values).map((field) => [field, ''])),
@@ -41,7 +42,7 @@ export function form(values = {}, { fallback = 'Something went wrong.' } = {}) {
         if (err.fields) {
           this.errors = { ...this.errors, ...err.fields };
         } else {
-          this.error = errorMessage(err, fallback);
+          this.error = errorMessage(err, fallback ?? text('error'));
 
           // A plain Error is a sentence written for the visitor, and an expected
           // outcome should not look like a crash. Anything else is a failure.
@@ -56,7 +57,7 @@ export function form(values = {}, { fallback = 'Something went wrong.' } = {}) {
 
 // A service maps its own backend's error shape into { field: message } and throws
 // this. The framework cannot know that shape, and a page must never have to.
-export function fieldError(fields, message = 'Please check the form.') {
+export function fieldError(fields, message = text('checkForm')) {
   const err = new Error(message);
   err.name = 'FieldError';
   err.fields = fields;

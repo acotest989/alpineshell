@@ -1,5 +1,6 @@
 import { http, errorMessage } from './http.js';
 import { router } from './router.js';
+import { text } from './texts.js';
 
 const PARTIAL_TIMEOUT = 5000; // local files; a longer wait would only stall the boot
 const NOTICE_TIMEOUT = 4000; // long enough to read a sentence, short enough not to nag
@@ -63,7 +64,7 @@ export function createRoot({ partials = [], partialsDir = '/partials', extend = 
           .then((html) => (this.partials[name] = html))
           .catch((err) => {
             console.error(`AlpineShell: partial '${name}' failed —`, err);
-            this.errMsg = `Could not load: ${name}`;
+            this.errMsg = text('partialNotLoaded', { name });
 
             // An app-wide message cannot point at a place, and has nowhere to render
             // at all when the partial that failed is the toast. Development only: a
@@ -91,7 +92,7 @@ export function catchPageErrors(name, factory) {
       try {
         return await init.apply(this, initArgs);
       } catch (err) {
-        this.errMsg = errorMessage(err, 'This page could not be opened.');
+        this.errMsg = errorMessage(err, text('pageFailed'));
         console.error(`AlpineShell: ${name} failed to start —`, err);
       }
     };
