@@ -24,7 +24,7 @@ In your HTML, before any module script:
 <script type="importmap">
 {
   "imports": {
-    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.6/index.js"
+    "alpineshell": "https://cdn.jsdelivr.net/gh/acotest989/alpineshell@v0.5.7/index.js"
   }
 }
 </script>
@@ -308,16 +308,16 @@ Two things to know before adding a test. `AbortSignal.timeout` uses an unref'd t
 
 ```bash
 # set the new version in package.json first
-git commit -am "0.5.6"
-git tag -a v0.5.6 -m "0.5.6"
+git commit -am "0.5.7"
+git tag -a v0.5.7 -m "0.5.7"
 git push origin main --follow-tags
 ```
 
 Then move the import map in every app to the new tag. Nothing reaches an app until that happens: jsDelivr serves the tag, not the branch.
 
-**Annotate the tag.** `git tag v0.5.6` makes a lightweight one, and `--follow-tags` pushes only annotated tags — so the commit lands, the tag silently does not, and every app pinned to it boots blank on a 404. Pushing by name (`git push origin v0.5.6`) works too.
+**Annotate the tag.** `git tag v0.5.7` makes a lightweight one, and `--follow-tags` pushes only annotated tags — so the commit lands, the tag silently does not, and every app pinned to it boots blank on a 404. Pushing by name (`git push origin v0.5.7`) works too.
 
-**Never move a published tag.** To jsDelivr a tag is content that could not have changed, cached accordingly, and an app can end up on the old files under the new number with no way to clear it. Release the next patch instead. A 404 it has already answered is cached as well, and `https://purge.jsdelivr.net/gh/acotest989/alpineshell@v0.5.6/index.js` clears one path, once an hour.
+**Never move a published tag.** To jsDelivr a tag is content that could not have changed, cached accordingly, and an app can end up on the old files under the new number with no way to clear it. Release the next patch instead. A 404 it has already answered is cached as well, and `https://purge.jsdelivr.net/gh/acotest989/alpineshell@v0.5.7/index.js` clears one path, once an hour.
 
 ## Dependencies
 
@@ -325,8 +325,8 @@ All from jsDelivr, all pinned to an exact version in `index.js` — a range woul
 
 | | |
 |---|---|
-| [Alpine.js](https://alpinejs.dev) | 3.16.1 |
-| `@alpinejs/persist` | 3.16.1 — must match Alpine |
+| [Alpine.js](https://alpinejs.dev) | 3.17.4 |
+| `@alpinejs/persist` | 3.17.4 — must match Alpine |
 | [Pinecone Router](https://github.com/rehhouari/pinecone-router) | 7.6.0 |
 | [Tailwind CSS](https://tailwindcss.com) (browser build) | 4.3.3 |
 

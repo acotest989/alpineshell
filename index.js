@@ -6,8 +6,8 @@
 // Full URLs, not bare specifiers: a library cannot rely on an import map it does
 // not own, and requiring one would put this file's dependencies in every consumer.
 import 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3';
-import 'https://cdn.jsdelivr.net/npm/alpinejs@3.16.1/dist/cdn.min.js';
-import persist from 'https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.16.1/dist/module.esm.js';
+import 'https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/cdn.min.js';
+import persist from 'https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.17.4/dist/module.esm.js';
 import pineconeRouter from 'https://cdn.jsdelivr.net/npm/pinecone-router@7.6.0/dist/router.esm.js';
 
 import { http } from './http.js';
