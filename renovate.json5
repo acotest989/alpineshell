@@ -1,0 +1,30 @@
+// Renovate (github.com/apps/renovate) reads this and opens a pull request when something pinned
+// here has a newer release. Nothing merges itself: the changelog is in the PR, read it first.
+// Without the app installed on the repository, this file does nothing.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended'],
+
+  // One look a week, on Mondays, and no standing issue that lists everything.
+  schedule: ['* * * * 1'],
+  timezone: 'Europe/Sarajevo',
+  dependencyDashboard: false,
+
+  // index.js imports its dependencies by full jsDelivr URL, which no package manager reads.
+  customManagers: [
+    {
+      customType: 'regex',
+      managerFilePatterns: ['index.js'],
+      matchStrings: ['cdn\\.jsdelivr\\.net/npm/(?<depName>(?:@[^/@]+/)?[^/@]+)@(?<currentValue>[^/"\']+)'],
+      datasourceTemplate: 'npm',
+    },
+  ],
+
+  packageRules: [
+    {
+      // persist shares Alpine's internals, so the two only ever move together.
+      matchPackageNames: ['alpinejs', '@alpinejs/persist'],
+      groupName: 'Alpine',
+    },
+  ],
+}

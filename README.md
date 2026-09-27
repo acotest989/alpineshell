@@ -321,16 +321,16 @@ Then move the import map in every app to the new tag. Nothing reaches an app unt
 
 ## Dependencies
 
-All from jsDelivr, all pinned to an exact version in `index.js` — a range would change your app without you touching it:
+All from jsDelivr, all pinned to an exact version in `index.js` and nowhere else — a range would change your app without you touching it:
 
-| | |
-|---|---|
-| [Alpine.js](https://alpinejs.dev) | 3.17.4 |
-| `@alpinejs/persist` | 3.17.4 — must match Alpine |
-| [Pinecone Router](https://github.com/rehhouari/pinecone-router) | 7.6.0 |
-| [Tailwind CSS](https://tailwindcss.com) (browser build) | 4.3.3 |
+- [Alpine.js](https://alpinejs.dev)
+- `@alpinejs/persist`, which must match Alpine
+- [Pinecone Router](https://github.com/rehhouari/pinecone-router)
+- [Tailwind CSS](https://tailwindcss.com), its browser build
 
 Upgrading one of them is a release of this framework, not a decision an app makes.
+
+`renovate.json5` does the watching. With the [Renovate app](https://github.com/apps/renovate) installed on the repository, a newer release becomes a pull request on a Monday, changelog included, Alpine and persist as one; nothing merges itself, and the tests run on it. Merging it is half a release: the other half is under [Releasing](#releasing), and no app sees the new version before then.
 
 ## License
 
