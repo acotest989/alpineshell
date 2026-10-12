@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # 22 is the floor, not a preference: `node --test` only learned to expand a
       # glob of its own there, and the test script names its files.
