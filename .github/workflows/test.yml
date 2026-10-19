@@ -19,7 +19,7 @@ jobs:
       # glob of its own there, and the test script names its files.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       # No install step: the framework has no dependencies and neither do the tests.
       - run: npm test
